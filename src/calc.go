@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+// var romanToInt = map[string]int{
+// 	"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
+// }
+
+// var intToRoman = map[int]string{
+// 	1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 10: "X",
+// }
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -21,7 +29,19 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(tokens)
+	var x, operand, y interface{} = tokens[0], tokens[1], tokens[2]
+
+	xInterfaceValue, xBool := x.(int)
+	yInterfaceValue, yBool := y.(int)
+	
+	if xBool && yBool{
+		fmt.Println("X and Y are integers")
+	} 
+
+	fmt.Println(xInterfaceValue, operand, yInterfaceValue)
+
+	// fmt.Println(romanToInt)
+	// fmt.Println(intToRoman)
 
 }
 
