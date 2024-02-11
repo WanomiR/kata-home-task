@@ -31,15 +31,7 @@ func main() {
 
 	var x, operand, y interface{} = tokens[0], tokens[1], tokens[2]
 
-	xInterfaceValue, xBool := x.(int)
-	yInterfaceValue, yBool := y.(int)
-	
-	if xBool && yBool{
-		fmt.Println("X and Y are integers")
-	} 
-
-	fmt.Println(xInterfaceValue, operand, yInterfaceValue)
-
+	fmt.Println(x, operand, y)
 	// fmt.Println(romanToInt)
 	// fmt.Println(intToRoman)
 
@@ -50,7 +42,7 @@ func parseString(str string) ([]string, error) {
 	tokens := strings.Split(str, " ")
 
 	if len(tokens) != 3 {
-		return nil, fmt.Errorf("Expected 3 intput elements, got %d", len(tokens))
+		return nil, fmt.Errorf("expected 3 intput elements, got %d", len(tokens))
 	}
 
 	return tokens, nil
