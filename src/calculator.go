@@ -52,7 +52,7 @@ func main() {
 			panic(err)
 		}
 
-		params.PrintOutput(intToRoman)
+		params.PrintOutput()
 	}
 
 }
@@ -176,11 +176,11 @@ func intToRoman(numInt int) string {
 	return numRoman
 }
 
-func (p *Params) PrintOutput(toRoman func(int) string) {
+func (p *Params) PrintOutput() {
 	switch p.System {
 	case "arabic":
 		fmt.Printf("Output:\n%d\n\n", p.Result)
 	case "roman":
-		fmt.Printf("Output:\n%s\n\n", toRoman(p.Result))
+		fmt.Printf("Output:\n%s\n\n", intToRoman(p.Result))
 	}
 }
