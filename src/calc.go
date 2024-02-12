@@ -8,17 +8,14 @@ import (
 	"strings"
 )
 
-// var intToRoman = map[int]string{
-// 	1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 10: "X", 100: "C"
-// }
-
 func main() {
-	var x, y int
 	var numSystem string
+	var x, y int
+	var result int
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Your input goes here:\n")
+	fmt.Print("Input two numbers and operator (ex.: a + b):\n")
 	inputString, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err)
@@ -32,7 +29,26 @@ func main() {
 	operand1, operator, operand2 := tokens[0], tokens[1], tokens[2]
 	validateInput(operand1, operand2, &numSystem, &operator, &x, &y)
 
-	fmt.Println(x, operator, y, numSystem)
+	switch operator {
+	case "+":
+		result = x + y
+	case "-":
+		result = x - y
+	case "*":
+		result = x * y
+	case "/":
+		result = x / y
+	}
+
+	if numSystem == "arabic" {
+		fmt.Printf("= %d", result)
+	} else if numSystem == "roman" {
+		if result < 1 {
+			err = fmt.Errorf("roman system doesn't have zero and negative numbers, got %d", result)
+			panic(err)
+		}
+		fmt.Printf("= %s", intToRoman(result))
+	}
 
 }
 
@@ -101,4 +117,30 @@ func validateInput(operand1 string, operand2 string, numSystem *string, operator
 		panic(err)
 	}
 
+}
+
+func intToRoman(arabic int) string {
+	convertTable := []struct {
+		value int
+		digit string
+	}{
+		{100, "C"},
+		{90, "XC"},
+		{50, "L"},
+		{40, "XL"},
+		{10, "X"},
+		{9, "IX"},
+		{5, "V"},
+		{4, "IV"},
+		{1, "I"},
+	}
+
+	var roman strings.Builder
+	for _, match := range convertTable {
+		for arabic >= match.value {
+			roman.WriteString(match.digit)
+			arabic -= match.value
+		}
+	}
+	return roman.String()
 }
