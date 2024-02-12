@@ -12,11 +12,11 @@ type Params struct {
 	System   string
 	X, Y     int
 	Operator rune
+	Result   int
 }
 
 func main() {
 	var params Params
-	var result int
 
 	description := "Arabic/Roman calculator.\n\n" +
 		"Pass in two numbers in the range between 1 and 10\n" +
@@ -24,7 +24,7 @@ func main() {
 		"with one of the following operators in between: '-', '+', '*', or '/'.\n" +
 		"All elements should be separated with a blank space.\n" +
 		"Examples: 'a + b', 'a / b', 'IV * III', 'X - V'.\n" +
-		"To stop the program press CTRL + C at the same time.\n\n"
+		"Press CTRL + C to stop the program.\n\n"
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -42,35 +42,19 @@ func main() {
 		}
 
 		operand1, operator, operand2 := tokens[0], tokens[1], tokens[2]
-		err = params.ValidateInput(operand1, operand2, operator)
+		err = params.ProcessInput(operand1, operand2, operator)
 		if err != nil {
 			panic(err)
 		}
 
-		result = params.CalculateResult()
-
-		if params.System == "arabic" {
-			fmt.Printf("Output:\n%d\n\n", result)
-		} else if params.System == "roman" {
-			fmt.Printf("Output:\n%s\n\n", intToRoman(result))
+		err = params.CalculateResult()
+		if err != nil {
+			panic(err)
 		}
+
+		params.PrintOutput(intToRoman)
 	}
 
-}
-
-func (p *Params) CalculateResult() int {
-	result := 0
-	switch p.Operator {
-	case '+':
-		result = p.X + p.Y
-	case '-':
-		result = p.X - p.Y
-	case '*':
-		result = p.X * p.Y
-	case '/':
-		result = p.X / p.Y
-	}
-	return result
 }
 
 func parseString(str string) ([]string, error) {
@@ -94,12 +78,8 @@ func isValidRoman(operand string, romanToInt map[string]int) bool {
 }
 
 func isValidInt(operand string) bool {
-	num, err := strconv.Atoi(operand)
+	_, err := strconv.Atoi(operand)
 	if err == nil {
-		if num < 1 || num > 10 {
-			rangeErr := fmt.Errorf("input numbers should be from 1 to 10, got: %d", num)
-			panic(rangeErr)
-		}
 		return true
 	}
 	return false
@@ -115,7 +95,7 @@ func isValidOperator(operator string) bool {
 	return false
 }
 
-func (p *Params) ValidateInput(operand1 string, operand2 string, operator string) error {
+func (p *Params) ProcessInput(operand1 string, operand2 string, operator string) error {
 	var err error = nil
 
 	romanToInt := map[string]int{
@@ -135,6 +115,13 @@ func (p *Params) ValidateInput(operand1 string, operand2 string, operator string
 	} else if isValidInt(operand1) && isValidInt(operand2) {
 		p.X, _ = strconv.Atoi(operand1)
 		p.Y, _ = strconv.Atoi(operand2)
+
+		if p.X < 1 || p.X > 10 {
+			err = fmt.Errorf("input numbers should be from 1 to 10, got: %d", p.X)
+		} else if p.Y < 1 || p.Y > 10 {
+			err = fmt.Errorf("input numbers should be from 1 to 10, got: %d", p.Y)
+		}
+
 		p.System = "arabic"
 	} else {
 		err = fmt.Errorf("input numbers should be either both integers or roman, got: %s and %s", operand1, operand2)
@@ -142,6 +129,25 @@ func (p *Params) ValidateInput(operand1 string, operand2 string, operator string
 
 	return err
 
+}
+
+func (p *Params) CalculateResult() error {
+	var err error = nil
+	switch p.Operator {
+	case '+':
+		p.Result = p.X + p.Y
+	case '-':
+		p.Result = p.X - p.Y
+	case '*':
+		p.Result = p.X * p.Y
+	case '/':
+		p.Result = p.X / p.Y
+	}
+
+	if p.System == "roman" && p.Result < 1 {
+		err = fmt.Errorf("roman system doesn't have zero and negative numbers, got: %d", p.Result)
+	}
+	return err
 }
 
 func intToRoman(numInt int) string {
@@ -160,11 +166,6 @@ func intToRoman(numInt int) string {
 		{1, "I"},
 	}
 
-	if numInt < 1 {
-		err := fmt.Errorf("roman system doesn't have zero and negative numbers, got: %d", numInt)
-		panic(err)
-	}
-
 	numRoman := ""
 	for _, pair := range convertTable {
 		for numInt >= pair.value {
@@ -173,4 +174,13 @@ func intToRoman(numInt int) string {
 		}
 	}
 	return numRoman
+}
+
+func (p *Params) PrintOutput(toRoman func(int) string) {
+	switch p.System {
+	case "arabic":
+		fmt.Printf("Output:\n%d\n\n", p.Result)
+	case "roman":
+		fmt.Printf("Output:\n%s\n\n", toRoman(p.Result))
+	}
 }
