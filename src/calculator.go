@@ -8,10 +8,16 @@ import (
 	"strings"
 )
 
+type Params struct {
+	System   string
+	X, Y     int
+	Operator rune
+}
+
 func main() {
-	var numSystem string
-	var x, y int
+	var params Params
 	var result int
+
 	description := "Arabic/Roman calculator.\n\n" +
 		"Pass in two numbers in the range between 1 and 10\n" +
 		"(in either Arabic or Roman system, but not together)\n" +
@@ -36,26 +42,35 @@ func main() {
 		}
 
 		operand1, operator, operand2 := tokens[0], tokens[1], tokens[2]
-		validateInput(operand1, operand2, &numSystem, &operator, &x, &y)
-
-		switch operator {
-		case "+":
-			result = x + y
-		case "-":
-			result = x - y
-		case "*":
-			result = x * y
-		case "/":
-			result = x / y
+		err = params.ValidateInput(operand1, operand2, operator)
+		if err != nil {
+			panic(err)
 		}
 
-		if numSystem == "arabic" {
+		result = params.CalculateResult()
+
+		if params.System == "arabic" {
 			fmt.Printf("Output:\n%d\n\n", result)
-		} else if numSystem == "roman" {
+		} else if params.System == "roman" {
 			fmt.Printf("Output:\n%s\n\n", intToRoman(result))
 		}
 	}
 
+}
+
+func (p *Params) CalculateResult() int {
+	result := 0
+	switch p.Operator {
+	case '+':
+		result = p.X + p.Y
+	case '-':
+		result = p.X - p.Y
+	case '*':
+		result = p.X * p.Y
+	case '/':
+		result = p.X / p.Y
+	}
+	return result
 }
 
 func parseString(str string) ([]string, error) {
@@ -100,28 +115,32 @@ func isValidOperator(operator string) bool {
 	return false
 }
 
-func validateInput(operand1 string, operand2 string, numSystem *string, operator *string, x *int, y *int) {
+func (p *Params) ValidateInput(operand1 string, operand2 string, operator string) error {
+	var err error = nil
+
 	romanToInt := map[string]int{
 		"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10,
 	}
 
-	if !isValidOperator(*operator) {
-		err := fmt.Errorf("operators allowed: +, -, *, /; got: %s", *operator)
-		panic(err)
+	if !isValidOperator(operator) {
+		err = fmt.Errorf("operators allowed: +, -, *, /; got: %s", operator)
+	} else {
+		p.Operator = rune(operator[0])
 	}
 
 	if isValidRoman(operand1, romanToInt) && isValidRoman(operand2, romanToInt) {
-		*x = romanToInt[operand1]
-		*y = romanToInt[operand2]
-		*numSystem = "roman"
+		p.X = romanToInt[operand1]
+		p.Y = romanToInt[operand2]
+		p.System = "roman"
 	} else if isValidInt(operand1) && isValidInt(operand2) {
-		*x, _ = strconv.Atoi(operand1)
-		*y, _ = strconv.Atoi(operand2)
-		*numSystem = "arabic"
+		p.X, _ = strconv.Atoi(operand1)
+		p.Y, _ = strconv.Atoi(operand2)
+		p.System = "arabic"
 	} else {
-		err := fmt.Errorf("input numbers should be either both integers or roman, got: %s and %s", operand1, operand2)
-		panic(err)
+		err = fmt.Errorf("input numbers should be either both integers or roman, got: %s and %s", operand1, operand2)
 	}
+
+	return err
 
 }
 
