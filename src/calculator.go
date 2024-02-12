@@ -12,42 +12,48 @@ func main() {
 	var numSystem string
 	var x, y int
 	var result int
+	description := "Arabic/Roman calculator.\n\n" +
+		"Pass in two numbers in the range between 1 and 10\n" +
+		"(in either Arabic or Roman system, but not together)\n" +
+		"with one of the following operators in between: '-', '+', '*', or '/'.\n" +
+		"All elements should be separated with a blank space.\n" +
+		"Examples: 'a + b', 'a / b', 'IV * III', 'X - V'.\n" +
+		"To stop the program press CTRL + C at the same time.\n\n"
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Input two numbers and operator (ex.: a + b):\n")
-	inputString, err := reader.ReadString('\n')
-	if err != nil {
-		panic(err)
-	}
-
-	tokens, err := parseString(inputString)
-	if err != nil {
-		panic(err)
-	}
-
-	operand1, operator, operand2 := tokens[0], tokens[1], tokens[2]
-	validateInput(operand1, operand2, &numSystem, &operator, &x, &y)
-
-	switch operator {
-	case "+":
-		result = x + y
-	case "-":
-		result = x - y
-	case "*":
-		result = x * y
-	case "/":
-		result = x / y
-	}
-
-	if numSystem == "arabic" {
-		fmt.Printf("= %d", result)
-	} else if numSystem == "roman" {
-		if result < 1 {
-			err = fmt.Errorf("roman system doesn't have zero and negative numbers, got %d", result)
+	fmt.Print(description)
+	for {
+		fmt.Print("Input:\n")
+		inputString, err := reader.ReadString('\n')
+		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("= %s", intToRoman(result))
+
+		tokens, err := parseString(inputString)
+		if err != nil {
+			panic(err)
+		}
+
+		operand1, operator, operand2 := tokens[0], tokens[1], tokens[2]
+		validateInput(operand1, operand2, &numSystem, &operator, &x, &y)
+
+		switch operator {
+		case "+":
+			result = x + y
+		case "-":
+			result = x - y
+		case "*":
+			result = x * y
+		case "/":
+			result = x / y
+		}
+
+		if numSystem == "arabic" {
+			fmt.Printf("Output:\n%d\n\n", result)
+		} else if numSystem == "roman" {
+			fmt.Printf("Output:\n%s\n\n", intToRoman(result))
+		}
 	}
 
 }
@@ -119,7 +125,7 @@ func validateInput(operand1 string, operand2 string, numSystem *string, operator
 
 }
 
-func intToRoman(arabic int) string {
+func intToRoman(numInt int) string {
 	convertTable := []struct {
 		value int
 		digit string
@@ -135,12 +141,17 @@ func intToRoman(arabic int) string {
 		{1, "I"},
 	}
 
-	var roman strings.Builder
-	for _, match := range convertTable {
-		for arabic >= match.value {
-			roman.WriteString(match.digit)
-			arabic -= match.value
+	if numInt < 1 {
+		err := fmt.Errorf("roman system doesn't have zero and negative numbers, got: %d", numInt)
+		panic(err)
+	}
+
+	numRoman := ""
+	for _, pair := range convertTable {
+		for numInt >= pair.value {
+			numRoman += pair.digit
+			numInt -= pair.value
 		}
 	}
-	return roman.String()
+	return numRoman
 }
